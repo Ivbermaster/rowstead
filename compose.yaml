@@ -1,0 +1,75 @@
+name: batchflow
+x-app: &app
+  image: batchflow:local
+  build: .
+  environment: &environment
+    DATABASE_URL: postgresql+psycopg://batchflow:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/batchflow
+    SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
+    DEMO_BASE_URL: http://demo-source:8001
+    STORAGE_DIR: /srv/batchflow/data
+    WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-2}
+    WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-1}
+    MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-20}
+    LEASE_SECONDS: ${LEASE_SECONDS:-120}
+    MAX_ATTEMPTS: ${MAX_ATTEMPTS:-3}
+    COOKIE_SECURE: ${COOKIE_SECURE:-false}
+  networks: [private]
+  volumes: [files:/srv/batchflow/data]
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: batchflow
+      POSTGRES_USER: batchflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes: [database:/var/lib/postgresql/data]
+    networks: [private]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U batchflow -d batchflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  migrate:
+    <<: *app
+    command: [alembic, upgrade, head]
+    restart: 'no'
+    depends_on:
+      postgres: {condition: service_healthy}
+  demo-source:
+    <<: *app
+    command: [uvicorn, 'demo.main:app', --host, 0.0.0.0, --port, '8001']
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  api:
+    <<: *app
+    networks: [private, ingress]
+    ports: ['127.0.0.1:8000:8000']
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+  worker:
+    <<: *app
+    command: [python, -m, app.worker]
+    init: true
+    shm_size: 1gb
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      demo-source: {condition: service_healthy}
+
+networks:
+  ingress: {}
+  private:
+    internal: true
+volumes:
+  database:
+  files:

@@ -1,0 +1,95 @@
+name: checks
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Source, SQLite, PostgreSQL and browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: batchflow_test
+          POSTGRES_USER: batchflow
+          # Disposable CI-only credentials; never used by local/deployed accounts.
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U batchflow -d batchflow_test"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: sqlite:///./data/ci.db
+      TEST_DATABASE_URL: postgresql+psycopg://batchflow:ci-only-password@localhost:5432/batchflow_test
+      SESSION_SECRET: ci-only-session-secret-at-least-32-characters
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/data/browsers
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.lock
+      - name: Publication preflight (working tree, index and HEAD paths)
+        run: python scripts/check_release.py --require-git
+      - name: Install locked dependencies
+        run: |
+          python -m pip install -r requirements.lock
+          python -m pip install --no-deps -e .
+          mkdir -p data artifacts/ci
+      - name: Lint
+        run: python -m ruff check .
+      - name: SQLite migrations and model drift
+        run: |
+          python -m alembic upgrade head
+          python -m alembic check
+      - name: PostgreSQL migrations and model drift
+        run: |
+          python -m alembic upgrade head
+          python -m alembic check
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+      - name: Unit and PostgreSQL integration tests
+        run: python -m pytest -q --junitxml=artifacts/ci/tests.xml
+      - name: Install real Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Browser upload, controls, calculator and export
+        run: >-
+          python -m pytest -q tests/test_ui_e2e.py
+          --basetemp=artifacts/pytest-e2e --junitxml=artifacts/ci/browser.xml
+        env:
+          BATCHFLOW_E2E: '1'
+      - name: Keep synthetic test reports and screenshots only
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: checks-reports-and-synthetic-screenshots
+          path: |
+            artifacts/ci/*.xml
+            artifacts/*.png
+          retention-days: 7
+          if-no-files-found: warn
+  container:
+    name: Build application container
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Build locked dependencies and Chromium image
+        run: docker build --progress=plain -t batchflow:ci .
+      - name: Import packaged app as container user
+        run: >-
+          docker run --rm --entrypoint python batchflow:ci
+          -c "import app.main, app.worker.runner; print('Packaged application imports passed')"

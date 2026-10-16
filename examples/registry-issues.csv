@@ -1,0 +1,9 @@
+identifier,notes
+BF-0001,Standard record
+BF-0002,Another record
+BF-0001,Duplicate identifier stays a separate row
+RATE-ONCE,"429 first, then succeeds"
+ERROR-ONCE,"500 first, then succeeds"
+MISSING,Expected missing record
+BAD VALUE,Expected invalid identifier
+ALWAYS-ERROR,Expected failure after three attempts

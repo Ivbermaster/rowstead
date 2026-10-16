@@ -1,0 +1,16 @@
+name: Feature request
+description: Propose a focused addition to Rowstead.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What workflow needs improvement?
+      description: Describe the goal using synthetic examples and no client data.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Proposed behavior and completion criteria
+    validations:
+      required: true

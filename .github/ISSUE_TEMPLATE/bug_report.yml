@@ -1,0 +1,33 @@
+name: Bug report
+description: Report a reproducible problem using synthetic data.
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        For security findings, follow SECURITY.md. Do not attach credentials,
+        cookies, customer files, database dumps or unredacted logs.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include a small synthetic CSV or the bundled example name.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Version and environment
+      placeholder: Commit/tag, OS, Python/Docker version, adapter
+    validations:
+      required: true
+  - type: textarea
+    id: checks
+    attributes:
+      label: Relevant status or error code
+      description: Review all text/screenshots for private data before posting.
