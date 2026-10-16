@@ -189,4 +189,21 @@ see [development](development.md#existing-local-demo-compatibility).
 
 The longer batch/recovery/backup measurements above remain the original dated
 evidence. Local recordings and other runtime files are excluded from the release.
-Hosted CI results are recorded separately after the first public push.
+Hosted CI results follow below.
+
+## Public release — 2026-10-16
+
+Published [Rowstead v0.1.0](https://github.com/Ivbermaster/rowstead/releases/tag/v0.1.0)
+from commit `57e2ffaa51c626e5de0d148acfec6d13e12f1ce6`.
+The first hosted [GitHub Actions run](https://github.com/Ivbermaster/rowstead/actions/runs/38906034190)
+completed successfully:
+
+- Publication preflight and Ruff passed.
+- SQLite and PostgreSQL migrations/model drift passed.
+- **90 tests passed, 1 skipped** (7.49 s); the skip is the separately run browser test.
+- Actual Chromium E2E: **1 passed** (31.29 s).
+- Container build and packaged application imports passed.
+
+The release contains source and synthetic screenshots. Videos, databases, uploads,
+backups, local environment files and internal notes are excluded. Earlier mentions
+of unpublished state in this report describe the checkpoints before this release.

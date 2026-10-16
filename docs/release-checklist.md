@@ -15,8 +15,10 @@
 - [x] Local Git repository initialized on `main`; public files reviewed before staging.
 - [x] Three-step import, sample onboarding, server search and issue filtering tested in Chromium.
 - [x] Owner authorized public GitHub publication as Rowstead, without video.
-- [ ] Publish the prepared source repository and version 0.1.0.
-- [ ] Run the hosted CI workflow after pushing; it has not run locally on GitHub.
+- [x] Publish [Ivbermaster/rowstead](https://github.com/Ivbermaster/rowstead) and
+  [version 0.1.0](https://github.com/Ivbermaster/rowstead/releases/tag/v0.1.0).
+- [x] Hosted [GitHub Actions](https://github.com/Ivbermaster/rowstead/actions/runs/38906034190)
+  passed on the release commit: source checks, 90 tests, Chromium E2E and container build.
 - [ ] Review notices for the actual browser/container artifacts if distributing binaries.
 - [x] Video excluded from this release; local runtime artifacts remain private.
 

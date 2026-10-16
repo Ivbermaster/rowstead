@@ -114,7 +114,9 @@ Local validation and exact commands are recorded in the [verification report](do
 The [runtime report](docs/runtime-report.md) records an actual 3,000-row HTTP batch,
 CSV/XLSX comparison, worker SIGKILL/restart and container Chromium check. Its
 shared-host timing and sampled memory are observations, not a production SLA.
-The GitHub Actions workflow is provided; a hosted run is not claimed before push.
+The [v0.1.0 GitHub Actions run](https://github.com/Ivbermaster/rowstead/actions/runs/38906034190)
+passed: 90 tests, a separate Chromium E2E, SQLite/PostgreSQL migrations and the
+container build. See the [first release](https://github.com/Ivbermaster/rowstead/releases/tag/v0.1.0).
 
 ## API
 
