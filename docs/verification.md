@@ -207,3 +207,15 @@ completed successfully:
 The release contains source and synthetic screenshots. Videos, databases, uploads,
 backups, local environment files and internal notes are excluded. Earlier mentions
 of unpublished state in this report describe the checkpoints before this release.
+
+## Long-page sidebar correction — 2026-10-16
+
+The fixed desktop sidebar used to end at the viewport edge in full-page captures,
+leaving a light patch below it. Desktop shell pages now paint the sidebar color
+through the entire document, while the main content keeps its light background.
+
+Actual Chromium checks passed at 1440 px and 1024 px widths on pages taller than
+the viewport. The bottom-left screenshot pixel is the sidebar color `#172e2b`.
+At 390 px the mobile background remains `#f5f7f3`; login and API reference pages
+also retain their original backgrounds. No horizontal overflow was detected.
+Four public screenshots were refreshed from the rebuilt Compose app, without video.
